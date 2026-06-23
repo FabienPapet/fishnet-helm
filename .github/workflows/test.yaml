@@ -26,13 +26,15 @@ jobs:
       - name: helm lint
         run: helm lint .
 
-      - name: helm template (inline key)
-        run: helm template t . --set key.value=ci-dummy-key > /tmp/inline.yaml
-
-      - name: helm template (existing secret)
-        run: helm template t . --set key.existingSecret=fishnet > /tmp/existing.yaml
+      - name: Install kubeconform
+        run: |
+          curl -fsSL -o /tmp/kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kubeconform.tar.gz -C /usr/local/bin kubeconform
 
       - name: Validate rendered manifests
-        uses: docker://ghcr.io/yannh/kubeconform:latest
-        with:
-          args: -strict -summary -ignore-missing-schemas /tmp/inline.yaml /tmp/existing.yaml
+        run: |
+          helm template t . --set key.value=ci-dummy-key \
+            | kubeconform -strict -summary -ignore-missing-schemas
+          helm template t . --set key.existingSecret=fishnet \
+            | kubeconform -strict -summary -ignore-missing-schemas
