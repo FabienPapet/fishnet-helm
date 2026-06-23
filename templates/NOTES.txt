@@ -1,0 +1,18 @@
+fishnet has been deployed.
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Image:     {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+Replicas:  {{ .Values.replicaCount }}
+
+{{- if .Values.key.existingSecret }}
+Using existing secret: {{ .Values.key.existingSecret }} (key: {{ .Values.key.secretKey }})
+{{- else }}
+A Secret named {{ include "fishnet.fullname" . }} was created with your fishnet KEY.
+{{- end }}
+
+Check the workers:
+
+  kubectl --namespace {{ .Release.Namespace }} logs -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+Don't have a key yet? Get one at https://lichess.org/get-fishnet

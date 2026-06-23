@@ -1,0 +1,16 @@
+apiVersion: v2
+name: fishnet
+description: A Helm chart to deploy the fishnet distributed Stockfish analysis client for lichess.org
+type: application
+version: 0.1.0
+appVersion: "latest"
+home: https://github.com/niklasf/fishnet
+sources:
+  - https://github.com/niklasf/fishnet
+keywords:
+  - fishnet
+  - lichess
+  - stockfish
+  - chess
+maintainers:
+  - name: FabienPapet
