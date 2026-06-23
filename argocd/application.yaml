@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fishnet
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/FabienPapet/fishnet-helm.git
+    targetRevision: main
+    path: .
+    helm:
+      parameters:
+        - name: key.existingSecret
+          value: fishnet
+        - name: key.secretKey
+          value: KEY
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fishnet
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

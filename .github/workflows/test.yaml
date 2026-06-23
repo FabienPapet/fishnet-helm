@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest --version v0.8.2
+
+      - name: helm unittest
+        run: helm unittest .
+
+      - name: helm lint
+        run: helm lint .
+
+      - name: helm template (inline key)
+        run: helm template t . --set key.value=ci-dummy-key > /tmp/inline.yaml
+
+      - name: helm template (existing secret)
+        run: helm template t . --set key.existingSecret=fishnet > /tmp/existing.yaml
+
+      - name: Validate rendered manifests
+        uses: docker://ghcr.io/yannh/kubeconform:latest
+        with:
+          args: -strict -summary -ignore-missing-schemas /tmp/inline.yaml /tmp/existing.yaml

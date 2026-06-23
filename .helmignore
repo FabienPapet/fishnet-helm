@@ -9,3 +9,5 @@
 .vscode/
 *.swp
 ci/
+tests/
+.github/

@@ -1,0 +1,87 @@
+suite: deployment
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders a Deployment with chart name
+    set:
+      key.value: dummy
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-fishnet
+
+  - it: uses default image and pull policy
+    set:
+      key.value: dummy
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: niklasf/fishnet:latest
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: respects image.tag override
+    set:
+      key.value: dummy
+      image.tag: "2.9.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: niklasf/fishnet:2.9.0
+
+  - it: injects KEY from the chart-managed secret by default
+    set:
+      key.value: dummy
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: KEY
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: RELEASE-NAME-fishnet
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: KEY
+
+  - it: references an existing secret when configured
+    set:
+      key.existingSecret: my-secret
+      key.secretKey: MYKEY
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: my-secret
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: MYKEY
+
+  - it: sets default resource requests and limits
+    set:
+      key.value: dummy
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "7"
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 1512Mi
+
+  - it: honours replicaCount and extraEnv
+    set:
+      key.value: dummy
+      replicaCount: 3
+      extraEnv:
+        - name: FOO
+          value: bar
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FOO
+            value: bar
